@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root name="intero" image="intero_logo120x120.png">
+	<images>
+		<image src="jason_jones.png" />
+	</images>
+	<videos>
+		<video src="the_maxx.mov" />
+	</videos>
+	<audios>
+		<audio src="test.mp3" />
+	</audios>
+	<documents>
+		<document src="DecemberTasksFinal.txt" />
+	</documents>
+	<projects>
+		<project name="Greenbrier" image="ruby120x120.png">
+			<images>
+				<image src="jason_jones.png" />
+			</images>
+			<videos>
+				<video src="the_maxx.mov" />
+			</videos>
+			<audios>
+				<audio src="test.mp3" />
+			</audios>
+			<documents>
+				<document src="DecemberTasksFinal.txt" />
+			</documents>
+		</project>
+	</projects>
+</root>
