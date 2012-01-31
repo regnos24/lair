@@ -1,7 +1,7 @@
 var data = {
 	'id': 'root',
 	'name': 'Intero',
-	'logo': 'intero_logo120x120.png',
+	'logo': 'images/intero_logo120x120.png',
 	'data' : {
 		"audios":['test.mp3'],
 		"documents":['DecemberTasksFinal.txt'],

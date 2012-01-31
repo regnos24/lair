@@ -1,189 +1,119 @@
-var Debug = function(){
-		this.suported_browser = navigator.userAgent.toLowerCase().indexOf('firefox') > -1 || navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
-		this.log = function(msg){
-			if(arguments[0]){
-				if(this.suported_browser){
-					console.log(msg);
-				}else{
-					alert(msg);
-				}
-			}else{
-				return false;
-			}
-		}
-}
 
-//Objects
-var Canvas = function(){
-	this.canvas = document.getElementById(arguments[0]["name"]);
-	this.ctx = this.canvas.getContext("2d");
-	this.bgColor;
-	this.canvas.width = 800;
-	this.canvas.height = 600;
-	this.center = {x:(this.canvas.width / 2), y:(this.canvas.height / 2)};
-	var self = this;
+
+Kinetic.Icon = function(config){
+	var x = config.x ? config.x : 0;
+	var y = config.y ? config.y : 0;
+	var width = config.width ? config.width : config.image.width;
+  var height = config.height ? config.height : config.image.height;
+	var stroke = config.stroke ? config.stroke : config.stroke = "2px #999";
+	var fill = config.fill ? config.fill : config.fill = "#FFF";
+	var gradientFallOff = config.gradientFallOff ? config.gradientFallOff : config.gradientFallOff = "#8ED6FF";
+	this.radius = config.radius ? config.radius : 60;
+	this.image = config.image ? config.image : config.image = "";
+	this._x = x;
+	this._y = y;
 	
-	this.setBackgroundColor = function(color){
-		this.bgColor = color;
-		this.ctx.fillStyle = color;
-		this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
+
+	var draw = function(){
+		var context = this.getContext();
+		//Create Circle
+		var st = stroke.split(" ");
+		context.beginPath();
+			context.strokeStyle = st[1];
+			context.lineWidth = st[0];
+			var circle = context.arc(x ,y ,this.radius, 0 * Math.PI, 2 * Math.PI);
+			//Create Gradient
+			var grd = context.createRadialGradient(x, y, 20, x, y, this.radius +10);
+			grd.addColorStop(0, fill); // light blue
+			grd.addColorStop(1, gradientFallOff); // dark blue
+			context.fillStyle = grd;
+			context.fill();
+			context.stroke();
+		context.closePath();
+		//Add Logo
+		context.drawImage(this.image,x - this.radius, y - this.radius);
 	}
-	this.setCanvasWidth = function(w){
-		this.canvas.width = w;
-		this.center.x = w / 2;
-		
-	}
-	this.setCanvasHeight = function(h){
-		this.canvas.height = h;
-		this.center.y = h / 2;
-	}
-	//Set Width/Height
-	if(arguments[0]['width'])
-		self.setCanvasWidth(arguments[0]['width']);
-	if(arguments[0]['height'])
-		self.setCanvasHeight(arguments[0]['height']);
-	//Set BG
-	if(arguments[0]['color'])
-		self.setBackgroundColor(arguments[0]['color']);
-	else
-		self.setBackgroundColor("#FFF");
-	return this.ctx
+	Kinetic.Shape.apply(this, [draw, config.name]);
+}
+Kinetic.Icon.prototype = new Kinetic.Shape();
+
+//Extensions End
+
+var loadImages = function(sources, callback){
+     images = {};
+     var loadedImages = 0;
+     var numImages = 0;
+     for (var src in sources) {
+         numImages++;
+     }
+     for (var src in sources) {
+         images[src] = new Image();
+         images[src].onload = function(){
+             if (++loadedImages >= numImages) {
+                 callback(images);
+             }
+         };
+         images[src].src = sources[src];
+     }
 }
 
-//Icon Objects
-var Icon = function(){
-	this.x = 0;
-	this.y = 0;
-	this.radius = 60;
-	this.image;
+var drawBackground = function(background, bgImg){
+    var canvas = background.getCanvas();
+    var context = background.getContext();
+    context.drawImage(bgImg, 0, 0);
+}
+
+var getChildren = function(appParent,appLayer){
+	var iconElements = [];
+	var x = appParent._x + appParent.radius;
+	var y = appParent._y + appParent.radius;
+	var xAxl = Math.cos(appParent.radius);
+	var yAxl = Math.sin(appParent.radius);
+	console.log(appParent);
+	console.log(x,y);
+	for(key in data.data){
+		var element = new Kinetic.Image({
+			image: images[key]
+		});
+		element.x += xAxl;
+		element.y += yAxl;
+		//iconElements.push(element);
+		element.draggable(true);
+    element.on("dragstart", function(){
+        element.moveToTop();
+        appLayer.draw();
+    });
+		appLayer.add(element);
+	}
+	return iconElements;
+}
+
+var initStage = function(images){
+	var stage = new Kinetic.Stage("appCanvas", 800, 600);
+	var background = new Kinetic.Layer();
+	var appLayer = new Kinetic.Layer();
 	
-	this.draw = function()
-	{
-		
-	}
-	this.hit = function()
-	{
-		
-	}
+	stage.add(background);
+	drawBackground(background, images.bgImg);
+	var rootIcon = new Kinetic.Icon({x: background.canvas.width / 2, y: background.canvas.height / 2, radius:60, image:images["root_logo"], name:data.name});
+	rootIcon.on("click",function(){ 
+		getChildren(this,appLayer);
+		appLayer.draw();
+	})
+	appLayer.add(rootIcon);
+	stage.add(appLayer);
 }
 
-$(document).ready(function(){
-	//DEBUG :: add false in production
-	var debug = new Debug(true);
-	//Load Data
-	debug.log(data);
-	//Canvas Init	
-	var canvas = new Canvas({name:"appCanvas", color:"#CCC", width:800, height:600})
-
-	//Globals
-	var images_dir = "images",
-	videos_dir = "videos",
-	documents_dir = "documents",
-	audios_dir = "audios";
-});
-
-
-
-//Load Base Objects
-// var BaseImage = function(){
-// 	this.x = 0;
-// 	this.y = 0;
-// 	this.origin = { x: "center", y: "center" };
-// 	this.image = [images_dir,xData.find("root").attr("image")].join("/")
-// 	this.draw = function(){
-// 		return canvas.display.image({
-// 			x: this.x,
-// 			y: this.y,
-// 			origin: this.origin,
-// 			image: [images_dir,this.image].join("/")
-// 		})
-// 	}
-// }
-// 
-// canvas.display.register("icon", {
-// 	shapeType: "radial"
-// }, function (canvas) {
-// 	var origin = this.getOrigin(),
-// 		x = this.abs_x - origin.x,
-// 		y = this.abs_y - origin.y;
-// 		var self = this;
-// 		self.direction;
-// 	//create container
-// 	canvas.beginPath();
-// 		canvas.strokeStyle = this.strokeColor;
-// 		canvas.lineWidth = this.strokeWidth;
-// 		canvas.arc(x ,y ,this.radius, 0 * Math.PI, 2 * Math.PI);
-// 		var grd = canvas.createRadialGradient(x, y, 20, x, y, this.radius +10);
-// 		grd.addColorStop(0, this.fill); // light blue
-// 		grd.addColorStop(1, this.gradientFallOff); // dark blue
-// 		canvas.fillStyle = grd;
-// 		canvas.fill();
-// 		canvas.stroke();
-// 	canvas.closePath();
-// 
-// 	
-// 	var bi = new BaseImage();
-// 	bi.x = this.x;
-// 	bi.y = this.y;
-// 	bi.image = this.image;
-// 	self.addChild(bi.draw());
-// 		if(this.direction == null){
-// 				this.direction = 0;
-// 		}
-// });
-// 
-// //Create Icon
-// var Icon = function()
-// {
-// 	this.x = 0;
-// 	this.y = 0;
-// 	this.direction = 0;
-// 	this.radius = 60;
-// 	this.start = 0;
-// 	this.end = 150;
-// 	this.stroke ="2px #999";
-// 	this.fill = "#FFF";
-// 	this.gradientFallOff = "#8ED6FF";
-// 	this.image = xData.find("root").attr("image");
-// 	this.timer = null;
-// 	this.monkey = null;
-// 	var self = this;
-// 	this.draw = function()
-// 	{
-// 		this.instance = canvas.display.icon({
-// 			x:this.x,
-// 			y:this.y,
-// 			_x:this.x,
-// 			_y:this.y,
-// 			radius: this.radius,
-// 			start: this.start,
-// 			end: this.end,
-// 			stroke: this.stroke,
-// 			fill: this.fill,
-// 			gradientFallOff: this.gradientFallOff,
-// 			image: this.image
-// 		});
-// 		return this.instance;
-// 	}
-// 	
-// 	this.click = function()
-// 	{
-// 		//this.instance.bind("click tap", function(){
-// 		// 			debug.log("HI");
-// 		//});
-// 	}
-// 	
-// 	self.click();
-// }
-// 
-// var ic = new Icon();
-// ic.x = center.x;
-// ic.y = center.y;
-// canvas.addChild(ic.draw());
-// // ic.instance.bind("click tap", function(){
-// // 			debug.log("HI");
-// // });
-// debug.log(ic.click);
-
-
-
+//Load the Canvas Elements
+window.onload = function(){
+	var sources = {
+			bgImg:"images/bgImg.png",
+   		root_logo: data.logo,
+			audios: "images/audios.png",
+			documents: "images/docs.png",
+			images: "images/pictures.png",
+			videos: "images/movies.png",
+   };
+	var images;
+	loadImages(sources, initStage);
+}
