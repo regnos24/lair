@@ -65,19 +65,30 @@ var drawBackground = function(background, bgImg){
 
 var getChildren = function(appParent,appLayer){
 	var iconElements = [];
-	var x = appParent._x + appParent.radius;
-	var y = appParent._y + appParent.radius;
-	var xAxl = Math.cos(appParent.radius);
-	var yAxl = Math.sin(appParent.radius);
-	console.log(appParent);
-	console.log(x,y);
+	//var x = appParent._x + (appParent.radius);
+	//var y = appParent._y + (appParent.radius);
+	this.angle = 0;
+	var toRadians = Math.PI / 180;
+	//this.xAngle = this.angle * Math.cos(this.radius);
+	//this.yAngle = this.angle * Math.sin(this.radius);
+	var count=0;
+	for(i in data.data){
+		count++;
+	}
+	this.angleChange = (360 / count);
 	for(key in data.data){
+		var x = parseInt((Math.cos(this.angle * toRadians) * (appParent.radius * 2.5)) + (appParent._x - appParent.radius));
+		var y = parseInt((Math.sin(this.angle * toRadians) * (appParent.radius * 2.5)) + (appParent._y - appParent.radius));
 		var element = new Kinetic.Image({
 			image: images[key]
 		});
-		element.x += xAxl;
-		element.y += yAxl;
-		//iconElements.push(element);
+		
+		element.x = x
+		element.y = y
+		this.angle -= this.angleChange;
+		// this.angle = this.angle + this.angleChange;
+		
+		console.log("name:" + key, "x: " + element.x, "y: " + element.y, "angle: "+this.angle);
 		element.draggable(true);
     element.on("dragstart", function(){
         element.moveToTop();
